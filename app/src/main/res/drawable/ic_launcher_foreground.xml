@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Silueta de "Brote" simplificada: una hoja sobre una gota, icono distintivo de EcoCiclos. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#8FD9A8"
+        android:pathData="M54,26 C74,26 82,42 78,58 C74,74 60,80 54,80 C48,80 34,74 30,58 C26,42 34,26 54,26 Z" />
+    <path android:fillColor="#3E9B5C"
+        android:pathData="M54,30 C68,34 72,48 68,58 C64,68 58,72 54,72 L54,30 Z" />
+    <path android:fillColor="#2FA8D9"
+        android:pathData="M54,58 C64,58 70,68 64,78 C60,84 48,84 44,78 C38,68 44,58 54,58 Z" />
+</vector>

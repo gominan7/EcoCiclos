@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.EcoCiclos" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.EcoCiclos.Splash" parent="Theme.EcoCiclos">
+        <item name="android:windowBackground">@color/hoja_profunda</item>
+    </style>
+</resources>

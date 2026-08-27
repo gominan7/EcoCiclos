@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  EcoCiclos es una aplicacion 100% offline (regla 23 de MASTER_SPEC).
+  No se declara el permiso INTERNET, por lo que esta configuracion existe
+  unicamente como salvaguarda defensiva: bloquea explicitamente el trafico
+  en texto plano por si en el futuro se anadiera alguna libreria que lo intente.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

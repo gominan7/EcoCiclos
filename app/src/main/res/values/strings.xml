@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">EcoCiclos</string>
+    <string name="app_tagline">Guardianes de la Materia</string>
+
+    <!-- Onboarding -->
+    <string name="onb_titulo_1">La Tierra necesita guardianes</string>
+    <string name="onb_desc_1">Los ciclos del agua, el carbono y el nitrógeno se han roto en varios biomas. Solo tú puedes restaurarlos.</string>
+    <string name="onb_titulo_2">Conoce a Brote y Gota</string>
+    <string name="onb_desc_2">Ellos te guiarán en cada bioma, te explicarán qué se rompió y celebrarán contigo cada avance.</string>
+    <string name="onb_titulo_3">Restaura, enruta y experimenta</string>
+    <string name="onb_desc_3">Arrastra elementos para reconstruir ciclos, traza rutas para los recursos y ajusta variables en el laboratorio.</string>
+    <string name="onb_titulo_4">Todo se guarda en tu dispositivo</string>
+    <string name="onb_desc_4">EcoCiclos funciona sin conexión. Tu progreso, cartas e insignias se guardan solo en este dispositivo.</string>
+    <string name="onb_continuar">Continuar</string>
+    <string name="onb_empezar">Empezar la misión</string>
+
+    <!-- Globo / Dashboard -->
+    <string name="globo_titulo">El Globo de EcoCiclos</string>
+    <string name="globo_progreso_planeta">Planeta restaurado</string>
+    <string name="globo_bioma_bloqueado">Bloqueado</string>
+    <string name="globo_bioma_disponible">Disponible</string>
+    <string name="globo_bioma_iniciado">En progreso</string>
+    <string name="globo_bioma_completado">Restaurado</string>
+
+    <!-- Simulador -->
+    <string name="sim_restaurador_instruccion">Arrastra cada elemento hacia la parte del ciclo donde encaja</string>
+    <string name="sim_enrutador_instruccion">Traza la ruta correcta para cada recurso, sin cruzarlos ni contaminar el río</string>
+    <string name="sim_laboratorio_instruccion">Mueve la variable y observa cómo cambia el ecosistema</string>
+    <string name="sim_correcto_titulo">¡Conexión correcta!</string>
+    <string name="sim_incorrecto_titulo">Casi lo tienes</string>
+    <string name="sim_reintentar">Reintentar</string>
+    <string name="sim_siguiente">Siguiente</string>
+
+    <!-- Ecopedia -->
+    <string name="ecopedia_titulo">Eco-pedia</string>
+    <string name="ecopedia_cartas">Cartas de Elementos</string>
+    <string name="ecopedia_insignias">Insignias de la Biosfera</string>
+    <string name="ecopedia_bloqueada">???</string>
+
+    <!-- Perfil -->
+    <string name="perfil_titulo">Tu perfil de guardián</string>
+    <string name="perfil_alias_hint">Elige un alias</string>
+</resources>

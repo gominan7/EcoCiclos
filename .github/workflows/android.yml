@@ -1,0 +1,89 @@
+name: Android CI - EcoCiclos
+
+# Regla 30 de MASTER_SPEC: el entorno de generación no tiene SDK de Android
+# ni acceso a maven.google.com, por lo que la compilación NO se verificó
+# localmente (ver docs/BUILD_REPORT.md). Este workflow es el que realmente
+# compila, testea y empaqueta la app en un entorno con las herramientas
+# completas, cada vez que se hace push o se abre un pull request.
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build-test-package:
+    name: Compilar, testear y empaquetar
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configurar Gradle (y generar el wrapper si falta el jar)
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Generar gradle-wrapper.jar si no existe
+        run: |
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+            echo "gradle-wrapper.jar no está en el repo (ver gradlew para más contexto); generándolo con Gradle 8.7..."
+            gradle wrapper --gradle-version 8.7
+          fi
+          chmod +x ./gradlew
+
+      - name: Limpiar
+        run: ./gradlew clean --no-daemon
+
+      - name: Ejecutar tests unitarios (domain + Room/Robolectric)
+        run: ./gradlew testDebugUnitTest --no-daemon
+
+      - name: Publicar resultados de tests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-tests
+          path: app/build/reports/tests/testDebugUnitTest/
+
+      - name: Ejecutar lint
+        run: ./gradlew lintDebug --no-daemon
+
+      - name: Publicar reporte de lint
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-lint
+          path: app/build/reports/lint-results-debug.html
+
+      - name: Compilar APK de depuración
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Calcular SHA-256 del APK
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
+          echo "APK: $APK_PATH"
+          sha256sum "$APK_PATH" | tee apk-sha256.txt
+
+      - name: Publicar APK generado
+        uses: actions/upload-artifact@v4
+        with:
+          name: EcoCiclos-debug-apk
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            apk-sha256.txt
+
+      - name: Compilar APK de release (sin firmar)
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Publicar APK de release (sin firmar)
+        uses: actions/upload-artifact@v4
+        with:
+          name: EcoCiclos-release-unsigned-apk
+          path: app/build/outputs/apk/release/*.apk
