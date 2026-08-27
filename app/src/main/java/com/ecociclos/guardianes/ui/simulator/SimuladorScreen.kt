@@ -22,6 +22,7 @@ import com.ecociclos.guardianes.ui.components.EstrellasResultado
 import com.ecociclos.guardianes.ui.components.Gota
 import com.ecociclos.guardianes.ui.crearViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SimuladorScreen(
     nivelId: Int,

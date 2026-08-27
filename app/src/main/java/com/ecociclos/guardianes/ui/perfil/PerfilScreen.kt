@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.ecociclos.guardianes.ui.components.AvatarIlustrado
 import com.ecociclos.guardianes.ui.crearViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PerfilScreen(onVolver: () -> Unit) {
     val viewModel = crearViewModel(PerfilViewModel::crear)

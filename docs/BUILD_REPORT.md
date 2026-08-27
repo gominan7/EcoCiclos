@@ -22,9 +22,37 @@ error: failed linking references.
 
 **Estado del resto del build en esa ejecución**: no llegó a ejecutarse `testDebugUnitTest` en sí — el fallo ocurrió antes, en `processDebugResources`, una tarea previa de la que depende la compilación de tests. Por lo tanto, ningún test corrió realmente en esta ejecución; no hay cifras de tests que reportar todavía.
 
-### Ejecución 2 en adelante
+### Ejecución 2 — `testDebugUnitTest` — ❌ FALLÓ (avanzó más: pasó `processDebugResources`, falló en `compileDebugKotlin`)
 
-Pendiente. Una vez el usuario vuelva a ejecutar el workflow (o `./gradlew testDebugUnitTest` localmente) con la corrección aplicada, este documento debe actualizarse con el resultado real: número de tests ejecutados/aprobados/fallidos, o el siguiente error real si aparece uno nuevo. Nunca se debe reemplazar esta sección con una afirmación de éxito no verificada.
+Reportada por el usuario. La corrección de la Ejecución 1 funcionó: `processDebugResources` pasó esta vez. El build avanzó mucho más lejos y llegó a compilar Kotlin, donde encontró errores reales de compilación:
+
+```
+> Task :app:compileDebugKotlin FAILED
+e: .../ui/components/Personajes.kt:31:19 Type 'State<Float>' has no method 'getValue(...)' and thus it cannot serve as a delegate
+e: .../ui/components/Personajes.kt:79:19 Type 'State<Float>' has no method 'getValue(...)' and thus it cannot serve as a delegate
+e: .../ui/components/ProgresoViews.kt:27:20 Type 'State<Float>' has no method 'getValue(...)' and thus it cannot serve as a delegate
+e: .../ui/components/ProgresoViews.kt:38:40 Overload resolution ambiguity (times)
+e: .../ui/ecopedia/EcopediaScreen.kt:33:20 Type 'MutableState<PestanaEcopedia>' has no method 'setValue(...)'
+e: .../ui/bioma/BiomaDetailScreen.kt:45:13 This material API is experimental
+e: .../ui/ecopedia/EcopediaScreen.kt:37:13 This material API is experimental
+e: .../ui/globe/GlobeDashboardScreen.kt:39:13 This material API is experimental
+e: .../ui/perfil/PerfilScreen.kt:29:13 This material API is experimental
+e: .../ui/simulator/SimuladorScreen.kt:37:13 This material API is experimental
+```
+
+**Causa raíz 1 — delegados `by` sin `getValue`/`setValue` importados.** En Kotlin, `val x by someState` y `var x by someMutableState` son azúcar sintáctica que requiere que `getValue`/`setValue` (funciones de extensión de `androidx.compose.runtime`) estén **explícitamente importadas** — no basta con que el tipo `State<T>` esté en el classpath. `Personajes.kt` y `ProgresoViews.kt` importaban `androidx.compose.runtime.Composable` de forma explícita pero no el wildcard `androidx.compose.runtime.*` ni `getValue` suelto, así que el compilador no encontraba el operador de delegación. `EcopediaScreen.kt` sí importaba `getValue` pero le faltaba `setValue` (usa `var pestana by remember { mutableStateOf(...) }`, que necesita ambos). El error de "overload resolution ambiguity" en `ProgresoViews.kt:38` era un **efecto en cascada** del mismo problema: al no resolverse el delegado, `animado` quedaba con un tipo de error, y `size.width * animado` no podía elegir un overload de `times`. No fue un bug independiente.
+
+**Corrección aplicada**: se añadió `import androidx.compose.runtime.getValue` a `Personajes.kt` y `ProgresoViews.kt`, y `import androidx.compose.runtime.setValue` a `EcopediaScreen.kt`. Se auditó **todo** `app/src/main/java` y `app/src/test/java` programáticamente (detectando cada `val ... by ...` / `var ... by ...` y verificando que el archivo tuviera el import necesario, explícito o vía wildcard `androidx.compose.runtime.*`) — no quedó ningún caso pendiente.
+
+**Causa raíz 2 — `TopAppBar` de Material 3 es una API experimental.** `TopAppBar` (usado dentro de `Scaffold(topBar = { ... })`) está anotado `@ExperimentalMaterial3Api`, una anotación `@RequiresOptIn`: usarla sin optar explícitamente es un **error de compilación**, no solo un warning. Afectaba a los 5 Composables de pantalla que usan `Scaffold` + `TopAppBar`: `BiomaDetailScreen`, `EcopediaScreen`, `GlobeDashboardScreen`, `PerfilScreen`, `SimuladorScreen`.
+
+**Corrección aplicada**: se añadió `@OptIn(ExperimentalMaterial3Api::class)` sobre cada una de esas 5 funciones `@Composable`. Se revisó el resto del código en busca de otras APIs experimentales de Material 3 (`ModalBottomSheet`, `ExposedDropdownMenu`, variantes de `TopAppBar`, etc.) — no se encontró ninguna otra.
+
+**Extra (no bloqueante)**: KSP avisó que `AppDatabase` tenía `exportSchema = true` sin `room.schemaLocation` configurado. Se cambió a `exportSchema = false` (no se necesitan migraciones exportadas para esta versión del proyecto) para eliminar el warning.
+
+### Ejecución 3 en adelante
+
+Pendiente. Con las correcciones anteriores, `compileDebugKotlin` debería completar. Si aparece un nuevo error, se documentará aquí siguiendo el mismo formato: log real, causa raíz, corrección aplicada.
 
 ## Estado de la compilación en el entorno de generación original
 

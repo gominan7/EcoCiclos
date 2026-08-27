@@ -30,6 +30,7 @@ import com.ecociclos.guardianes.ui.components.IconoElemento
 import com.ecociclos.guardianes.ui.components.parseColorHex
 import com.ecociclos.guardianes.ui.crearViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BiomaDetailScreen(
     biomaId: Int,

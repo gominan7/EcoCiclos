@@ -26,7 +26,7 @@ import com.ecociclos.guardianes.data.local.entity.*
         PerfilEntity::class
     ],
     version = 1,
-    exportSchema = true
+    exportSchema = false // sin directorio room.schemaLocation configurado; ver docs/MANUAL_TECNICO.md
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun biomaDao(): BiomaDao

@@ -25,6 +25,7 @@ import com.ecociclos.guardianes.ui.theme.AguaClara
 import com.ecociclos.guardianes.ui.theme.HojaClara
 import com.ecociclos.guardianes.ui.theme.SolSuave
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GlobeDashboardScreen(
     onAbrirBioma: (Int) -> Unit,
