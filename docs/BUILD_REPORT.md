@@ -50,9 +50,27 @@ e: .../ui/simulator/SimuladorScreen.kt:37:13 This material API is experimental
 
 **Extra (no bloqueante)**: KSP avisó que `AppDatabase` tenía `exportSchema = true` sin `room.schemaLocation` configurado. Se cambió a `exportSchema = false` (no se necesitan migraciones exportadas para esta versión del proyecto) para eliminar el warning.
 
-### Ejecución 3 en adelante
+### Ejecución 3 — Prueba manual del APK en un dispositivo Android real — ❌ Encontró bugs de legibilidad reales
 
-Pendiente. Con las correcciones anteriores, `compileDebugKotlin` debería completar. Si aparece un nuevo error, se documentará aquí siguiendo el mismo formato: log real, causa raíz, corrección aplicada.
+El usuario compiló el APK vía CI exitosamente, lo instaló en su teléfono y lo jugó de verdad. Reportó, con capturas de pantalla:
+
+1. El onboarding (pantallas de bienvenida) parecía mostrar solo íconos, sin título ni texto de instrucciones.
+2. En el Globo/Dashboard, texto poco legible ("letras blancas sobre fondo blanco").
+3. En la lista de niveles de un bioma, el título del primer nivel ("El ciclo del agua roto") casi no se podía leer.
+4. Dentro del puzzle Restaurador, al arrastrar los elementos a su destino, el juego decía "sigue intentando" repetidamente.
+5. En general, "las letras no se observan" en varias pantallas — problema crítico para una app pensada para niños de 8-12 años.
+
+**Causa raíz (una sola, para los puntos 1, 2, 3 y 5): el teléfono del usuario tenía el modo oscuro del sistema activado.** `EcoCiclosTheme` seguía `isSystemInDarkTheme()` y cambiaba a un esquema de color oscuro (texto claro/blanco por defecto), pero **ninguno de los componentes con fondo de color fijo** (tarjetas de bioma, tarjetas de nivel, tarjetas del Restaurador/Enrutador, el fondo del onboarding) se diseñó ni se probó contra ese escenario: siguen usando colores de fondo claros codificados directamente. El resultado: texto blanco heredado del tema oscuro, sobre tarjetas con fondo claro fijo — invisible. El modo oscuro nunca se implementó de verdad para esos componentes; solo el `MaterialTheme` raíz cambiaba.
+
+Además, por la misma razón, los íconos de la barra de estado del sistema (reloj, batería) aparecían claros sobre el fondo claro de la app — visibles en la imagen 1 del reporte del usuario.
+
+**Corrección aplicada**:
+- `ui/theme/Theme.kt`: se eliminó el esquema oscuro y el parámetro `darkTheme`; `EcoCiclosTheme` ahora usa **siempre** el esquema claro, con un comentario explicando por qué (decisión de alcance documentada, no un descuido).
+- `MainActivity.kt`: `enableEdgeToEdge()` ahora fija explícitamente `statusBarStyle`/`navigationBarStyle` a `SystemBarStyle.light(...)`, forzando íconos oscuros del sistema para que tengan contraste sobre el fondo claro de la app.
+
+**Punto 4 (drag & drop "sigue intentando")**: se revisó a fondo la lógica de arrastre y detección de colisión en `RestauradorCiclo.kt` (aritmética de `origenEnRaiz + offset + mitad del tamaño` contra los `Rect` de cada destino) y no se encontró un bug estructural — la lógica es consistente. La explicación más probable, confirmada por la propia imagen 5 del usuario, es que **tanto las etiquetas de origen ("Sol", "Vapor de agua"...) como las de destino ("Lago", "Nube"...) eran invisibles por el mismo bug de tema oscuro**, así que el usuario arrastraba sin poder leer qué conectaba con qué. Se resuelve con la misma corrección de tema. **Pendiente de confirmación**: si tras esta corrección el problema de "sigue intentando" persiste con las etiquetas ya visibles, es un bug distinto y real que habría que investigar por separado.
+
+**Alcance de la corrección de modo oscuro**: se optó por bloquear el tema a claro (en vez de auditar y corregir manualmente el color de cada `Text` en cada tarjeta) porque es la corrección más simple y con menor riesgo de dejar algún caso sin cubrir, dado que todo el sistema de ilustración de la app se diseñó contra un fondo claro. Soporte real de modo oscuro queda fuera de alcance de esta versión y debería ser un rediseño explícito, no un cambio incremental.
 
 ## Estado de la compilación en el entorno de generación original
 
