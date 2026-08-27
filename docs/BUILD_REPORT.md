@@ -1,10 +1,34 @@
 # Build Report — EcoCiclos: Guardianes de la Materia
 
-> Regla 37 de MASTER_SPEC: *"Si el entorno no puede compilar: COMPILACIÓN NO VERIFICADA. Nunca simules resultados."* Este documento cumple esa regla al pie de la letra.
+> Regla 37 de MASTER_SPEC: *"Si el entorno no puede compilar: COMPILACIÓN NO VERIFICADA. Nunca simules resultados."* Este documento cumple esa regla al pie de la letra, y se actualiza con cada ejecución real de CI conocida.
 
-## Estado real de la compilación en este entorno
+## Historial de ejecuciones reales en CI
 
-**COMPILACIÓN NO VERIFICADA.**
+### Ejecución 1 — `testDebugUnitTest` — ❌ FALLÓ
+
+Reportada por el usuario tras subir el repositorio a GitHub y ejecutar el workflow. Fallo real, con log real:
+
+```
+> Task :app:processDebugResources FAILED
+Android resource linking failed
+com.ecociclos.guardianes.app-mergeDebugResources-56:/values/values.xml:130:
+error: resource attr/?? (aka com.ecociclos.guardianes.debug:attr/??) not found.
+error: failed linking references.
+```
+
+**Causa raíz**: `app/src/main/res/values/strings.xml` contenía `<string name="ecopedia_bloqueada">???</string>`. En XML de recursos de Android, un valor de `<string>` que **empieza** con `?` se interpreta como una referencia a un atributo de tema (`?attr/...` o `?android:attr/...`), no como texto literal, a menos que el `?` se escape. AAPT2 tomó `??` como el nombre del atributo buscado, no lo encontró, y falló el linking de recursos.
+
+**Corrección aplicada**: se escapó el valor como `\?\?\?` (commit posterior a esta ejecución). Además, se auditó programáticamente **todo** el árbol `res/values*/*.xml` en busca del mismo patrón (cualquier `<string>` cuyo valor empiece por `?` o `@` sin escapar) — no se encontraron más casos. El único otro uso de `@` al inicio de un valor (`@color/hoja_profunda` en `themes.xml`) es un `<item>` de estilo, donde esa sintaxis es correcta y necesaria (referencia real a un color), no un error.
+
+**Estado del resto del build en esa ejecución**: no llegó a ejecutarse `testDebugUnitTest` en sí — el fallo ocurrió antes, en `processDebugResources`, una tarea previa de la que depende la compilación de tests. Por lo tanto, ningún test corrió realmente en esta ejecución; no hay cifras de tests que reportar todavía.
+
+### Ejecución 2 en adelante
+
+Pendiente. Una vez el usuario vuelva a ejecutar el workflow (o `./gradlew testDebugUnitTest` localmente) con la corrección aplicada, este documento debe actualizarse con el resultado real: número de tests ejecutados/aprobados/fallidos, o el siguiente error real si aparece uno nuevo. Nunca se debe reemplazar esta sección con una afirmación de éxito no verificada.
+
+## Estado de la compilación en el entorno de generación original
+
+**COMPILACIÓN NO VERIFICADA LOCALMENTE** en el entorno donde se escribió el código por primera vez: sin SDK de Android, sin Gradle instalado, y sin acceso de red a `maven.google.com`/`services.gradle.org`. Ver más abajo el detalle completo de esa limitación — sigue vigente para cualquier iteración futura de desarrollo en ese mismo tipo de entorno.
 
 El entorno en el que se generó este proyecto es un contenedor Linux con:
 - Java 21 (OpenJDK) ✅ disponible.

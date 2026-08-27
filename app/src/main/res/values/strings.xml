@@ -36,7 +36,7 @@
     <string name="ecopedia_titulo">Eco-pedia</string>
     <string name="ecopedia_cartas">Cartas de Elementos</string>
     <string name="ecopedia_insignias">Insignias de la Biosfera</string>
-    <string name="ecopedia_bloqueada">???</string>
+    <string name="ecopedia_bloqueada">\?\?\?</string>
 
     <!-- Perfil -->
     <string name="perfil_titulo">Tu perfil de guardián</string>
