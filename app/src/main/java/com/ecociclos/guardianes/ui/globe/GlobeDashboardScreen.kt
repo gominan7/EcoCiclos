@@ -1,21 +1,24 @@
 package com.ecociclos.guardianes.ui.globe
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.ecociclos.guardianes.ui.components.AvatarIlustrado
 import com.ecociclos.guardianes.ui.components.Brote
 import com.ecociclos.guardianes.ui.components.BarraProgresoEco
 import com.ecociclos.guardianes.ui.components.Gota
@@ -43,8 +46,22 @@ fun GlobeDashboardScreen(
                     IconButton(onClick = onAbrirEcopedia) {
                         Icon(Icons.Filled.Menu, contentDescription = "Eco-pedia")
                     }
-                    IconButton(onClick = onAbrirPerfil) {
-                        Icon(Icons.Filled.Person, contentDescription = "Perfil")
+                    // Antes: un ícono genérico de "Persona" que nunca cambiaba,
+                    // sin importar qué avatar o alias hubiera elegido el niño.
+                    // Un usuario probando la app reportó que sus cambios de
+                    // perfil "no se veían reflejados" — porque, en efecto, no
+                    // se veían reflejados en ningún lugar fuera de la propia
+                    // pantalla de Perfil. Ahora se muestra el avatar real
+                    // guardado, así el guardado queda visiblemente confirmado
+                    // cada vez que se abre la app.
+                    Box(
+                        modifier = Modifier
+                            .padding(end = 12.dp)
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .clickable(onClick = onAbrirPerfil)
+                    ) {
+                        AvatarIlustrado(avatarId = estado.perfil?.avatarId ?: 1, tamano = 36.dp)
                     }
                 }
             )
@@ -58,6 +75,18 @@ fun GlobeDashboardScreen(
                     Brush.verticalGradient(listOf(AguaClara.copy(alpha = 0.35f), HojaClara.copy(alpha = 0.25f), SolSuave.copy(alpha = 0.2f)))
                 )
         ) {
+            // Saludo personalizado con el alias guardado, misma razón que arriba:
+            // confirmar visiblemente que el perfil sí se guardó.
+            val alias = estado.perfil?.alias
+            if (!alias.isNullOrBlank()) {
+                Text(
+                    "¡Hola, $alias! 👋",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 20.dp, top = 16.dp)
+                )
+            }
+
             // Encabezado del globo: personajes guía + progreso del planeta
             Row(
                 modifier = Modifier

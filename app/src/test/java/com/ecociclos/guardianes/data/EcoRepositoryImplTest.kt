@@ -112,4 +112,52 @@ class EcoRepositoryImplTest : RoomTestBase() {
         repository.marcarBiomaDesbloqueado(2)
         assertThat(db.biomaDao().obtenerPorId(2)?.desbloqueado).isTrue()
     }
+
+    // --- Perfil ---
+    // Cubre el reporte de un usuario probando la app: "guardo un alias y un
+    // avatar, salgo y no veo esos cambios reflejados". El bug real resultó
+    // ser que la pantalla del Globo nunca mostraba el perfil guardado (ver
+    // docs/BUILD_REPORT.md), pero este test deja documentado y verificado
+    // que el guardado en sí, de punta a punta (repositorio -> Room -> Flow
+    // de vuelta), funciona correctamente.
+
+    @Test
+    fun `el perfil por defecto antes de guardar nada usa el alias semilla`() = runTest {
+        val perfil = repository.observarPerfil().first()
+        assertThat(perfil.alias).isEqualTo("Guardián")
+        assertThat(perfil.avatarId).isEqualTo(1)
+    }
+
+    @Test
+    fun `actualizar perfil persiste alias y avatar y se refleja al releer`() = runTest {
+        repository.actualizarPerfil(alias = "COCO", avatarId = 7)
+
+        val perfil = repository.observarPerfil().first()
+
+        assertThat(perfil.alias).isEqualTo("COCO")
+        assertThat(perfil.avatarId).isEqualTo(7)
+    }
+
+    @Test
+    fun `actualizar el perfil dos veces conserva el ultimo valor, no acumula filas`() = runTest {
+        repository.actualizarPerfil(alias = "COCO", avatarId = 7)
+        repository.actualizarPerfil(alias = "LUNA", avatarId = 3)
+
+        val perfil = repository.observarPerfil().first()
+
+        assertThat(perfil.alias).isEqualTo("LUNA")
+        assertThat(perfil.avatarId).isEqualTo(3)
+    }
+
+    @Test
+    fun `sumar xp preserva el alias y avatar ya guardados (no los resetea)`() = runTest {
+        repository.actualizarPerfil(alias = "COCO", avatarId = 7)
+
+        repository.sumarXp(50)
+
+        val perfil = repository.observarPerfil().first()
+        assertThat(perfil.alias).isEqualTo("COCO")
+        assertThat(perfil.avatarId).isEqualTo(7)
+        assertThat(perfil.xpTotal).isEqualTo(50)
+    }
 }

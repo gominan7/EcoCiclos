@@ -72,6 +72,20 @@ Además, por la misma razón, los íconos de la barra de estado del sistema (rel
 
 **Alcance de la corrección de modo oscuro**: se optó por bloquear el tema a claro (en vez de auditar y corregir manualmente el color de cada `Text` en cada tarjeta) porque es la corrección más simple y con menor riesgo de dejar algún caso sin cubrir, dado que todo el sistema de ilustración de la app se diseñó contra un fondo claro. Soporte real de modo oscuro queda fuera de alcance de esta versión y debería ser un rediseño explícito, no un cambio incremental.
 
+### Ejecución 4 — Prueba manual del APK con la corrección de tema claro — ⚠️ Reporte de producto real (no un bug de compilación)
+
+El usuario confirmó que el APK ya se ve legible tras la corrección de la Ejecución 3. Reportó, con capturas de pantalla, un problema distinto: *"al momento de seleccionar un alias y un avatar y guardo, luego salgo del aplicativo y no puedo observar el avatar ni el alias reflejando esos ajustes"*.
+
+**Diagnóstico**: se revisó de punta a punta el camino de guardado — `PerfilScreen` → `PerfilViewModel.actualizar()` → `EcoRepositoryImpl.actualizarPerfil()` → `PerfilDao.upsert()` (Room) → `PerfilDao.observar()` (Flow) → de vuelta al `StateFlow` del ViewModel. La lógica es correcta y ya estaba cubierta por `PerfilDaoTest`; no se encontró un bug de persistencia.
+
+**El bug real**: la pantalla del Globo (el Dashboard, la primera pantalla que se ve después de la de Perfil) **nunca leía el perfil guardado**. El ícono superior derecho era un ícono genérico de "Persona" fijo, sin importar qué avatar hubiera elegido el niño, y no había ningún saludo con el alias en ningún lugar. El `GlobeUiState` sí traía el `perfil` cargado desde Room reactivamente — el bug era que la UI simplemente no lo mostraba en ninguna parte. Desde la perspectiva del usuario, esto es indistinguible de "no se guardó": abrías la app y no veías ningún rastro de tu elección en ningún lado excepto volviendo a entrar manualmente a Perfil.
+
+**Corrección aplicada**:
+- `GlobeDashboardScreen.kt`: el ícono de perfil en la barra superior ahora es el `AvatarIlustrado` real guardado (no un ícono genérico), y se agregó un saludo `"¡Hola, {alias}!"` en la parte superior del Dashboard. Ambos se actualizan automáticamente porque ya estaban conectados al `Flow` de Room — solo faltaba usarlos en la UI.
+- Se añadieron 4 tests nuevos a `EcoRepositoryImplTest` (`data/EcoRepositoryImplTest.kt`) que verifican de punta a punta, contra Room real (en memoria): el valor semilla por defecto, que `actualizarPerfil` persiste y se relee correctamente, que actualizar dos veces no duplica filas (queda el último valor), y que `sumarXp` no resetea el alias/avatar ya guardados. Esto deja el camino de persistencia del perfil verificado con pruebas automatizadas, no solo por inspección de código.
+
+**Pendiente de confirmación por el usuario**: con esta corrección, al reabrir la app después de guardar un alias/avatar, el Dashboard debería mostrar el avatar y el saludo inmediatamente. Falta confirmar en un dispositivo real.
+
 ## Estado de la compilación en el entorno de generación original
 
 **COMPILACIÓN NO VERIFICADA LOCALMENTE** en el entorno donde se escribió el código por primera vez: sin SDK de Android, sin Gradle instalado, y sin acceso de red a `maven.google.com`/`services.gradle.org`. Ver más abajo el detalle completo de esa limitación — sigue vigente para cualquier iteración futura de desarrollo en ese mismo tipo de entorno.
