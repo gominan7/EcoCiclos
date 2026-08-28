@@ -83,7 +83,7 @@ fun GlobeDashboardScreen(
                     "¡Hola, $alias! 👋",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 20.dp, top = 16.dp)
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp)
                 )
             }
 

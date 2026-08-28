@@ -86,6 +86,16 @@ El usuario confirmó que el APK ya se ve legible tras la corrección de la Ejecu
 
 **Pendiente de confirmación por el usuario**: con esta corrección, al reabrir la app después de guardar un alias/avatar, el Dashboard debería mostrar el avatar y el saludo inmediatamente. Falta confirmar en un dispositivo real.
 
+### Ejecución 5 — `compileDebugKotlin` — ❌ FALLÓ (error simple de un solo carácter conceptual)
+
+```
+e: .../ui/globe/GlobeDashboardScreen.kt:86:69 Cannot find a parameter with this name: top
+```
+
+**Causa raíz**: en el saludo con el alias añadido en la corrección anterior, se escribió `Modifier.padding(horizontal = 20.dp, top = 16.dp)`. `Modifier.padding()` tiene dos "familias" de sobrecarga que no se pueden mezclar: `padding(horizontal, vertical)` **o** `padding(start, top, end, bottom)` — nunca `horizontal` junto con `top`.
+
+**Corrección aplicada**: cambiado a `Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp)`, usando consistentemente la familia `start/top/end/bottom`. Se escaneó programáticamente el resto de `app/src/main/java` en busca del mismo patrón de mezcla — no se encontró ningún otro caso.
+
 ## Estado de la compilación en el entorno de generación original
 
 **COMPILACIÓN NO VERIFICADA LOCALMENTE** en el entorno donde se escribió el código por primera vez: sin SDK de Android, sin Gradle instalado, y sin acceso de red a `maven.google.com`/`services.gradle.org`. Ver más abajo el detalle completo de esa limitación — sigue vigente para cualquier iteración futura de desarrollo en ese mismo tipo de entorno.
